@@ -19,7 +19,7 @@ PLAYER_IMAGE_PATH = "assets/sprites/player.png"
 BULLET_IMAGE_PATH = "assets/sprites/tile_0001.png"
 ENEMY_IMAGE_PATH = "assets/sprites/ship_0022.png"
 
-# Asset Manager class
+
 class AssetManager:
     def __init__(self, screen, font):
         self.screen = screen
@@ -55,7 +55,7 @@ class AssetManager:
         score_text = self.font.render(f"Score: {player.score}", True, (255, 255, 255))
         self.screen.blit(score_text, (SCREEN_WIDTH - 150, 10))
 
-# Player class
+
 class Player(pygame.sprite.Sprite):
     def __init__(self, asset_manager):
         super().__init__()
@@ -65,7 +65,8 @@ class Player(pygame.sprite.Sprite):
         self.health = PLAYER_MAX_HEALTH
         self.score = 0
 
-    def update(self, keys):
+    def update(self):
+        keys = pygame.key.get_pressed()
         if keys[pygame.K_LEFT] and self.rect.left > 0:
             self.rect.x -= self.speed
         if keys[pygame.K_RIGHT] and self.rect.right < SCREEN_WIDTH:
@@ -84,7 +85,7 @@ class Player(pygame.sprite.Sprite):
     def add_score(self, points):
         self.score += points
 
-# Enemy class
+
 class Enemy(pygame.sprite.Sprite):
     def __init__(self, asset_manager):
         super().__init__()
@@ -97,7 +98,7 @@ class Enemy(pygame.sprite.Sprite):
         if self.rect.top > SCREEN_HEIGHT:
             self.kill()
 
-# Bullet class
+
 class Bullet(pygame.sprite.Sprite):
     def __init__(self, x, y, asset_manager):
         super().__init__()
@@ -110,7 +111,25 @@ class Bullet(pygame.sprite.Sprite):
         if self.rect.bottom < 0:
             self.kill()
 
-# Game class
+class EventHandler:
+    def __init__(self, game):
+        self.game = game
+
+    def handle_events(self):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                self.game.running = False
+
+    def handle_shooting(self):
+        keys = pygame.key.get_pressed()
+        current_time = pygame.time.get_ticks()
+        if keys[pygame.K_SPACE] and current_time - self.game.last_shot_time > SHOOT_DELAY:
+            bullet = Bullet(self.game.player.rect.centerx, self.game.player.rect.top, self.game.asset_manager)
+            self.game.bullets.add(bullet)
+            self.game.all_sprites.add(bullet)
+            self.game.last_shot_time = current_time
+
+
 class Game:
     def __init__(self):
         pygame.init()
@@ -134,18 +153,8 @@ class Game:
         self.last_enemy_spawn_time = 0
         self.running = True
 
-    def handle_events(self):
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                self.running = False
-
-    def handle_shooting(self, keys):
-        current_time = pygame.time.get_ticks()
-        if keys[pygame.K_SPACE] and current_time - self.last_shot_time > SHOOT_DELAY:
-            bullet = Bullet(self.player.rect.centerx, self.player.rect.top, self.asset_manager)
-            self.bullets.add(bullet)
-            self.all_sprites.add(bullet)
-            self.last_shot_time = current_time
+        # Components
+        self.event_handler = EventHandler(self)
 
     def spawn_enemy(self):
         current_time = pygame.time.get_ticks()
@@ -165,11 +174,10 @@ class Game:
             self.player.take_damage(len(player_collisions))
 
     def update(self):
-        keys = pygame.key.get_pressed()
-        self.player.update(keys)
+        self.player.update()
         self.bullets.update()
         self.enemies.update()
-        self.handle_shooting(keys)
+        self.event_handler.handle_events()
         self.spawn_enemy()
         self.handle_collisions()
 
@@ -178,7 +186,7 @@ class Game:
 
     def run(self):
         while self.running:
-            self.handle_events()
+            self.event_handler.handle_shooting()
             self.update()
             self.draw()
             self.clock.tick(60)
