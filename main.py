@@ -1,5 +1,6 @@
-# TODO Avoid calling pygame.key.get_pressed multiple times in the same frame
-# TODO Use a separate Group for drawing health and score instead of relying on the AssetManager for all visuals
+# TODO AssetManager class is doing too much. Refactor to separate concerns
+# FIXME Debug screen flickering issue
+# TODO Ensure all sprites are add to the same group for rendering
 # TODO Add a game over screen
 
 import pygame
@@ -40,12 +41,10 @@ class AssetManager:
     def get_image(self, name):
         return self.images.get(name)
 
-    def draw(self, all_sprites, player):
-        self.screen.fill(BG_COLOR)
-        all_sprites.draw(self.screen)
-        self.draw_health(player)
-        self.draw_score(player)
-        pygame.display.flip()
+class HUD:
+    def __init__(self, screen, font):
+        self.screen = screen
+        self.font = font
 
     def draw_health(self, player):
         health_text = self.font.render(f"Health: {player.health}", True, (255, 255, 255))
@@ -96,7 +95,7 @@ class Enemy(pygame.sprite.Sprite):
     def update(self):
         self.rect.y += self.speed
         if self.rect.top > SCREEN_HEIGHT:
-            self.kill()
+            self.kill() # Remove enemy from group when off screen
 
 
 class Bullet(pygame.sprite.Sprite):
@@ -138,6 +137,11 @@ class Game:
         self.clock = pygame.time.Clock()
         self.font = pygame.font.Font(None, 36)  # Default font, size 36
 
+        # Components
+        self.event_handler = EventHandler(self)
+        self.hud = HUD(self.screen, self.font)
+    
+
         # Asset manager setup
         self.asset_manager = AssetManager(self.screen, self.font)
         self.asset_manager.load_and_scale_image("player", PLAYER_IMAGE_PATH, SCALE_FACTOR)
@@ -152,9 +156,6 @@ class Game:
         self.last_shot_time = 0
         self.last_enemy_spawn_time = 0
         self.running = True
-
-        # Components
-        self.event_handler = EventHandler(self)
 
     def spawn_enemy(self):
         current_time = pygame.time.get_ticks()
@@ -182,7 +183,11 @@ class Game:
         self.handle_collisions()
 
     def draw(self):
-        self.asset_manager.draw(self.all_sprites, self.player)
+        self.screen.fill(BG_COLOR)
+        self.all_sprites.draw(self.screen)
+        self.hud.draw_health(self.player)
+        self.hud.draw_score(self.player)
+        pygame.display.flip()
 
     def run(self):
         while self.running:
