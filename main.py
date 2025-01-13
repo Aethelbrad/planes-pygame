@@ -27,8 +27,8 @@ class Game:
         self.hud = HUD(self.screen, self.font)
     
 
-        # Asset manager setup void using `global` for `PLAYER_IMAGE`, `BULLET_IMAGE`, etc. Pass them as arguments or make them attributes of the AssetManager class
-        self.asset_manager = AssetManager(self.screen, self.font)
+        # Asset manager setup | FIXME Avoid using `global` for `PLAYER_IMAGE`, `BULLET_IMAGE`, etc. Pass them as arguments or make them attributes of the AssetManager class
+        self.asset_manager = AssetManager()
         self.asset_manager.load_and_scale_image("player", PLAYER_IMAGE_PATH, SCALE_FACTOR)
         self.asset_manager.load_and_scale_image("bullet", BULLET_IMAGE_PATH, SCALE_FACTOR)
         self.asset_manager.load_and_scale_image("enemy", ENEMY_IMAGE_PATH, SCALE_FACTOR)

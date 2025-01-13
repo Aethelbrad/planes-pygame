@@ -4,9 +4,7 @@ import pygame
 import sys
 
 class AssetManager:
-    def __init__(self, screen, font):
-        self.screen = screen
-        self.font = font
+    def __init__(self):
         self.images = {}
 
     def load_and_scale_image(self, name, path, scale_factor):
