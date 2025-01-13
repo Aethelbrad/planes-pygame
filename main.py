@@ -1,6 +1,7 @@
 # TODO AssetManager class is doing too much. Refactor to separate concerns
 # FIXME Debug screen flickering issue
 # TODO Ensure all sprites are add to the same group for rendering
+# TODO Use Python's `logging` module instead of `print`. It allows different log levels (DEBUG, INFO, WARNING, etc.) and file output.
 # TODO Add a game over screen
 
 import pygame
@@ -26,7 +27,7 @@ class Game:
         self.hud = HUD(self.screen, self.font)
     
 
-        # Asset manager setup
+        # Asset manager setup void using `global` for `PLAYER_IMAGE`, `BULLET_IMAGE`, etc. Pass them as arguments or make them attributes of the AssetManager class
         self.asset_manager = AssetManager(self.screen, self.font)
         self.asset_manager.load_and_scale_image("player", PLAYER_IMAGE_PATH, SCALE_FACTOR)
         self.asset_manager.load_and_scale_image("bullet", BULLET_IMAGE_PATH, SCALE_FACTOR)
