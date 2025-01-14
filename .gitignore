@@ -3,3 +3,7 @@
 .DS_Store
 
 __pycache__/
+
+profile_results.prof
+
+view_profile.py
