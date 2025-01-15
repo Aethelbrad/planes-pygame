@@ -1,7 +1,7 @@
-# TODO AssetManager class is doing too much. Refactor to separate concerns
+
 # FIXME Debug screen flickering issue
 # TODO Ensure all sprites are add to the same group for rendering
-# TODO Use Python's `logging` module instead of `print`. It allows different log levels (DEBUG, INFO, WARNING, etc.) and file output.
+# TODO Use Python's `logging` module instead of `print`
 # TODO Add a game over screen
 
 import pygame
@@ -22,26 +22,32 @@ class Game:
         self.clock = pygame.time.Clock()
         self.font = pygame.font.Font(None, 36)  # Default font, size 36
 
-        # Components
+        # Game Components
         self.event_handler = EventHandler(self)
         self.hud = HUD(self.screen, self.font)
-    
-
-        # Asset manager setup | FIXME Avoid using `global` for `PLAYER_IMAGE`, `BULLET_IMAGE`, etc. Pass them as arguments or make them attributes of the AssetManager class
         self.asset_manager = AssetManager()
-        self.asset_manager.load_and_scale_image("player", PLAYER_IMAGE_PATH, SCALE_FACTOR)
-        self.asset_manager.load_and_scale_image("bullet", BULLET_IMAGE_PATH, SCALE_FACTOR)
-        self.asset_manager.load_and_scale_image("enemy", ENEMY_IMAGE_PATH, SCALE_FACTOR)
 
-        # Game entities
-        self.player = Player(self.asset_manager)
-        self.all_sprites = pygame.sprite.Group(self.player)
-        self.bullets = pygame.sprite.Group()
-        self.enemies = pygame.sprite.Group()
+        # TODO Refactor
+        self.initialize_assets()
+        self.initialize_sprites()
+
+        # TODO Refactor
         self.last_shot_time = 0
         self.last_enemy_spawn_time = 0
         self.running = True
 
+    def initialize_assets(self):
+        """Load and scale assets using AssetManager"""
+        self.asset_manager.load_and_scale_image("player", PLAYER_IMAGE_PATH, SCALE_FACTOR)
+        self.asset_manager.load_and_scale_image("bullet", BULLET_IMAGE_PATH, SCALE_FACTOR)
+        self.asset_manager.load_and_scale_image("enemy", ENEMY_IMAGE_PATH, SCALE_FACTOR)
+
+    def initialize_sprites(self):
+        """Initialize sprite groups and player sprite"""
+        self.player = Player(self.asset_manager)
+        self.all_sprites = pygame.sprite.Group(self.player)
+        self.bullets = pygame.sprite.Group()
+        self.enemies = pygame.sprite.Group()
 
     def handle_collisions(self):
         bullet_enemy_collisions = pygame.sprite.groupcollide(self.bullets, self.enemies, True, True)
