@@ -8,20 +8,18 @@ class AssetManager:
         self.images = {}
 
     def load_and_scale_image(self, name, path, scale_factor, fallback_size=(16,16)):
-        scaled_w = int(fallback_size[0] * scale_factor)
-        scaled_h = int(fallback_size[1] * scale_factor)
-
         try:
             image = pygame.image.load(path).convert_alpha()
             scaled_w = int(image.get_width() * scale_factor)
             scaled_h = int(image.get_height() * scale_factor)
-            
             self.images[name] = pygame.transform.scale(image, (scaled_w, scaled_h))
         except Exception as e:
             print(f"Warning: failed to load {path}: {e}. Using placeholder for '{name}'.")
+            scaled_w = int(fallback_size[0] * scale_factor)
+            scaled_h = int(fallback_size[1] * scale_factor)
             surf = pygame.Surface((scaled_w, scaled_h), pygame.SRCALPHA)
-            surf.fill((255, 0, 255, 255))  # Magenta placeholder
-            pygame.draw.rect(surf, (0, 0, 0), surf.get_rect(), 2)
+            surf.fill(MAGENTA)
+            pygame.draw.rect(surf, WHITE, surf.get_rect(), 2)
             self.images[name] = surf
 
     def get_image(self, name):
@@ -48,12 +46,10 @@ class HUD:
         screen.blit(fps_text, fps_rect)
         
         # Health Bar
-        bar_width = 100
-        bar_height = 10
-        fill = (player.health / PLAYER_MAX_HEALTH) * bar_width
+        fill = (player.health / PLAYER_MAX_HEALTH) * HEALTH_BAR_W
         
-        outline_rect = pygame.Rect(10, 40, bar_width, bar_height)
-        fill_rect = pygame.Rect(10, 40, fill, bar_height)
+        outline_rect = pygame.Rect(10, 40, HEALTH_BAR_W, HEALTH_BAR_H)
+        fill_rect = pygame.Rect(10, 40, fill, HEALTH_BAR_H)
 
         pygame.draw.rect(screen, RED, fill_rect)
         pygame.draw.rect(screen, WHITE, outline_rect, 2)
@@ -216,12 +212,10 @@ class Game:
             self.screen.blit(resume_text, r_rect)
             self.screen.blit(quit_text, q_rect)
 
-        is_debug_mode = False  # TOGGLE DEBUG MODE HERE!
-
-        if is_debug_mode:
-            for sprite in self.all_sprites:
-                if hasattr(sprite, 'draw_debug'):
-                    sprite.draw_debug(self.screen)
+        # if is_debug_mode:
+        #     for sprite in self.all_sprites:
+        #         if hasattr(sprite, 'draw_debug'):
+        #             sprite.draw_debug(self.screen)
         
         pygame.display.flip()
 
