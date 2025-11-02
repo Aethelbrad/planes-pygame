@@ -166,11 +166,11 @@ class Game:
         if keys[pygame.K_SPACE]:
             self.handle_shooting()
 
-        self.enemies.update()
-        self.bullets.update()
-        
         self.spawn_enemy()
         self.handle_collisions()
+
+        self.enemies.update()
+        self.bullets.update()
 
         if self.player.health <= 0:
             self.game_over = True
@@ -223,7 +223,6 @@ class Game:
                 if hasattr(sprite, 'draw_debug'):
                     sprite.draw_debug(self.screen)
         
-
         pygame.display.flip()
 
     def run(self):
