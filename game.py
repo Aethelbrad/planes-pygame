@@ -6,6 +6,7 @@ from settings import Settings
 from entities import Player, Bullet, Enemy
 from states import PlayingState, PausedState, GameOverState
 
+
 class AssetManager:
     def __init__(self):
         self.images = {}
@@ -28,6 +29,7 @@ class AssetManager:
     def get_image(self, name):
         return self.images.get(name)
 
+
 class HUD:
     def __init__(self, font):
         self.font = font
@@ -49,13 +51,11 @@ class HUD:
         screen.blit(fps_text, fps_rect)
         
         # Health Bar
-        fill = (player.health / Settings.Player.MAX_HEALTH) * Settings.HUD.HEALTH_BAR_W
-        
-        outline_rect = pygame.Rect(10, 40, Settings.HUD.HEALTH_BAR_W, Settings.HUD.HEALTH_BAR_H)
-        fill_rect = pygame.Rect(10, 40, fill, Settings.HUD.HEALTH_BAR_H)
-
-        pygame.draw.rect(screen, Settings.Colors.RED, fill_rect)
-        pygame.draw.rect(screen, Settings.Colors.WHITE, outline_rect, 2)
+        # fill = (player.health / Settings.Player.MAX_HEALTH) * Settings.HUD.HEALTH_BAR_W
+        # outline_rect = pygame.Rect(10, 40, Settings.HUD.HEALTH_BAR_W, Settings.HUD.HEALTH_BAR_H)
+        # fill_rect = pygame.Rect(10, 40, fill, Settings.HUD.HEALTH_BAR_H)
+        # pygame.draw.rect(screen, Settings.Colors.RED, fill_rect)
+        # pygame.draw.rect(screen, Settings.Colors.WHITE, outline_rect, 2)
 
 
 class Game:
