@@ -1,7 +1,10 @@
+# game.py
+
 import pygame
 import sys
 from settings import *
 from entities import Player, Bullet, Enemy
+from states import PlayingState, PausedState, GameOverState
 
 class AssetManager:
     def __init__(self):
@@ -54,35 +57,6 @@ class HUD:
         pygame.draw.rect(screen, RED, fill_rect)
         pygame.draw.rect(screen, WHITE, outline_rect, 2)
 
-class EventHandler:
-    def __init__(self, game):
-        self.game = game
-
-    def handle_input(self):
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                self.game.running = False
-            
-            if event.type == pygame.KEYDOWN:
-                
-                if self.game.game_over:
-                    # --- GAME OVER STATE ---
-                    if event.key == pygame.K_RETURN:
-                        self.game.running = False
-
-                elif self.game.paused:
-                    # --- PAUSED STATE ---
-                    if event.key == pygame.K_p or event.key == pygame.K_ESCAPE or event.key == pygame.K_r:
-                        self.game.toggle_pause() # Resume
-                    if event.key == pygame.K_q:
-                        self.game.running = False # Quit
-                
-                else:
-                    # --- PLAYING STATE ---
-                    if event.key == pygame.K_p or event.key == pygame.K_ESCAPE:
-                        self.game.toggle_pause() # Pause
-
-        return pygame.key.get_pressed()
 
 class Game:
     def __init__(self):
@@ -91,28 +65,22 @@ class Game:
         self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
         self.clock = pygame.time.Clock()
         self.font = pygame.font.Font(None, 36)
-        self.big_font = pygame.font.Font(None, 72) # Game Over / Pause font
+        self.big_font = pygame.font.Font(None, 72)
         
-
-        # Game State
+        # State
         self.running = True
-        self.game_over = False
-        self.paused = False
-
+        self.keys = pygame.key.get_pressed() # keys here for state access
         # Assets
         self.asset_manager = AssetManager()
-        self.asset_manager.load_and_scale_image("player", PLAYER_IMAGE_PATH, SCALE_FACTOR, fallback_size=(16,16))
-        self.asset_manager.load_and_scale_image("bullet", BULLET_IMAGE_PATH, SCALE_FACTOR, fallback_size=(8,8))
-        self.asset_manager.load_and_scale_image("enemy", ENEMY_IMAGE_PATH, SCALE_FACTOR, fallback_size=(16,16))
+        self.asset_manager.load_and_scale_image("player", PLAYER_IMAGE_PATH, SCALE_FACTOR)
+        self.asset_manager.load_and_scale_image("bullet", BULLET_IMAGE_PATH, SCALE_FACTOR)
+        self.asset_manager.load_and_scale_image("enemy", ENEMY_IMAGE_PATH, SCALE_FACTOR)
 
         # Game systems
         self.hud = HUD(self.font)
-        self.event_handler = EventHandler(self)
 
         # Entities & groups
         self.player = Player(self.asset_manager)
-        
-        # Groups for rendering, updating, and colliding (all_sprites is for rendering/updating and subgroups are for collisions)
         self.all_sprites = pygame.sprite.Group(self.player)
         self.bullets = pygame.sprite.Group()
         self.enemies = pygame.sprite.Group()
@@ -120,13 +88,16 @@ class Game:
         # Timers
         self.last_shot_time = 0
         self.last_enemy_spawn_time = 0
+        
+        # State
+        self.states = {
+            "PLAYING": PlayingState(self),
+            "PAUSED": PausedState(self),
+            "GAME_OVER": GameOverState(self)
+        }
+        self.current_state_key = "PLAYING" # Start in the 'PLAYING' state
+        self.current_state = self.states[self.current_state_key]
 
-    # --- Pause Toggle ---
-    def toggle_pause(self):
-        if not self.game_over:
-            self.paused = not self.paused
-
-    # --- Simulation ---
     def spawn_enemy(self):
         current_time = pygame.time.get_ticks()
         if current_time - self.last_enemy_spawn_time > ENEMY_SPAWN_DELAY:
@@ -136,14 +107,11 @@ class Game:
             self.last_enemy_spawn_time = current_time
 
     def handle_collisions(self):
-        # Bullet vs. Enemy
         bullet_enemy = pygame.sprite.groupcollide(self.bullets, self.enemies, True, True)
         if bullet_enemy:
             hits = sum(len(v) for v in bullet_enemy.values())
             self.player.add_score(hits)
 
-        # Player vs. Enemy
-        # *** CHANGED: Switched to faster rect collision ***
         player_hit = pygame.sprite.spritecollide(self.player, self.enemies, True) 
         if player_hit:
             damage = len(player_hit) * PLAYER_COLLISION_DAMAGE
@@ -157,77 +125,32 @@ class Game:
             self.all_sprites.add(bullet)
             self.last_shot_time = current_time
 
-    def update(self, keys, delta_time):
-        self.player.update(keys, delta_time)
-        if keys[pygame.K_SPACE]:
-            self.handle_shooting()
-
-        self.spawn_enemy()
-        self.handle_collisions()
-
-        self.enemies.update()
-        self.bullets.update()
-
-        if self.player.health <= 0:
-            self.game_over = True
-            print("Shot Down")
-
-    def draw(self):
-        self.screen.fill(WHITE)
-        self.all_sprites.draw(self.screen)
-        self.hud.draw(self.screen, self.player, self.clock)
-
-        if self.game_over:
-            s = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
-            s.fill((0, 0, 0, 180)) 
-            self.screen.blit(s, (0, 0))
-
-            game_over_text = self.big_font.render("Shot Down", True, RED)
-            score_text = self.font.render(f"Final Score: {self.player.score}", True, BLACK)
-            quit_text = self.font.render("Press ENTER to Quit", True, BLACK)
-            
-            go_rect = game_over_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 50))
-            score_rect = score_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 20))
-            quit_rect = quit_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 70))
-            
-            self.screen.blit(game_over_text, go_rect)
-            self.screen.blit(score_text, score_rect)
-            self.screen.blit(quit_text, quit_rect)
-
-        elif self.paused:
-
-            s = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
-            s.fill((0, 0, 0, 180)) 
-            self.screen.blit(s, (0, 0))
-
-            pause_text = self.big_font.render("PAUSED", True, WHITE)
-            resume_text = self.font.render("Press 'R' or 'P' to Resume", True, WHITE)
-            quit_text = self.font.render("Press 'Q' to Quit", True, WHITE)
-            
-            p_rect = pause_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 50))
-            r_rect = resume_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 20))
-            q_rect = quit_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 70))
-            
-            self.screen.blit(pause_text, p_rect)
-            self.screen.blit(resume_text, r_rect)
-            self.screen.blit(quit_text, q_rect)
-
-        # if is_debug_mode:
-        #     for sprite in self.all_sprites:
-        #         if hasattr(sprite, 'draw_debug'):
-        #             sprite.draw_debug(self.screen)
-        
-        pygame.display.flip()
-
     def run(self):
         while self.running:
             delta_time = self.clock.tick(60) / 1000.0
-            keys = self.event_handler.handle_input()
+            events = pygame.event.get()
+            next_state_key_from_events = self.current_state.handle_events(events)
+            next_state_key_from_update = self.current_state.update(delta_time)
+            self.current_state.draw(self.screen)
+            pygame.display.flip()
             
-            if not self.paused and not self.game_over:
-                self.update(keys, delta_time)
+            # State transition logic
+            if next_state_key_from_events == "QUIT":
+                self.running = False
+            elif next_state_key_from_events != "SELF":
+                self.current_state_key = next_state_key_from_events
+                self.current_state = self.states[self.current_state_key]
             
-            self.draw()
+            elif next_state_key_from_update != "SELF":
+                 self.current_state_key = next_state_key_from_update
+                 if self.current_state_key == "GAME_OVER":
+                     self.states["GAME_OVER"] = GameOverState(self) # re-instantiate GAME_OVER state to reset it
+                 self.current_state = self.states[self.current_state_key]
 
         pygame.quit()
         sys.exit()
+
+
+if __name__ == "__main__":
+    game = Game()
+    game.run()
