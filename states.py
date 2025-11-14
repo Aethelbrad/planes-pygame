@@ -68,7 +68,8 @@ class PlayingState(BaseState):
         # All of your main drawing logic from Game.draw()
         screen.fill(Settings.Colors.BG)
         self.game.all_sprites.draw(screen)
-        self.game.hud.draw(screen, self.game.player, self.game.clock)
+        current_fps = int(self.game.clock.get_fps())
+        self.game.hud.draw(screen, self.game.player, current_fps)
 
 
 class PausedState(BaseState):

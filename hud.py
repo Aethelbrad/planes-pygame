@@ -4,7 +4,7 @@ class HUD:
     def __init__(self, font):
         self.font = font
 
-    def draw(self, screen, player, clock):
+    def draw(self, screen, player, fps):
         # Health Text
         health_text = self.font.render(f"Health: {player.health}", True, Settings.Colors.BLACK)
         screen.blit(health_text, (10, 10))
@@ -15,7 +15,6 @@ class HUD:
         screen.blit(score_text, score_rect)
 
         # Framerate
-        fps = int(clock.get_fps())
         fps_text = self.font.render(f"FPS: {fps}", True, Settings.Colors.BLACK)
         fps_rect = fps_text.get_rect(topright=(Settings.Screen.WIDTH - 10, 40))
         screen.blit(fps_text, fps_rect)

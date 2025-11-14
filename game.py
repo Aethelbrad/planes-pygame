@@ -18,7 +18,8 @@ class Game:
         
         # State
         self.running = True
-        self.keys = pygame.key.get_pressed() # keys here for state access
+        self.keys = pygame.key.get_pressed()
+
         # Assets
         self.asset_manager = AssetManager()
         self.asset_manager.load_and_scale_image("player", Settings.Paths.PLAYER_IMAGE, Settings.SCALE_FACTOR)
@@ -44,7 +45,7 @@ class Game:
             "PAUSED": PausedState(self),
             "GAME_OVER": GameOverState(self)
         }
-        self.current_state_key = "PLAYING" # Start in the 'PLAYING' state
+        self.current_state_key = "PLAYING"
         self.current_state = self.states[self.current_state_key]
 
     def spawn_enemy(self):
