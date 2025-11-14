@@ -2,7 +2,7 @@
 
 import pygame
 import sys
-from settings import *
+from settings import Settings
 from entities import Player, Bullet, Enemy
 from states import PlayingState, PausedState, GameOverState
 
@@ -21,8 +21,8 @@ class AssetManager:
             scaled_w = int(fallback_size[0] * scale_factor)
             scaled_h = int(fallback_size[1] * scale_factor)
             surf = pygame.Surface((scaled_w, scaled_h), pygame.SRCALPHA)
-            surf.fill(MAGENTA)
-            pygame.draw.rect(surf, WHITE, surf.get_rect(), 2)
+            surf.fill(Settings.Colors.MAGENTA)
+            pygame.draw.rect(surf, Settings.Colors.WHITE, surf.get_rect(), 2)
             self.images[name] = surf
 
     def get_image(self, name):
@@ -34,35 +34,35 @@ class HUD:
 
     def draw(self, screen, player, clock):
         # Health Text
-        health_text = self.font.render(f"Health: {player.health}", True, BLACK)
+        health_text = self.font.render(f"Health: {player.health}", True, Settings.Colors.BLACK)
         screen.blit(health_text, (10, 10))
 
         # Score Text
-        score_text = self.font.render(f"Score: {player.score}", True, BLACK)
-        score_rect = score_text.get_rect(topright=(SCREEN_WIDTH - 10, 10))
+        score_text = self.font.render(f"Score: {player.score}", True, Settings.Colors.BLACK)
+        score_rect = score_text.get_rect(topright=(Settings.Screen.WIDTH - 10, 10))
         screen.blit(score_text, score_rect)
 
         # Framerate
         fps = int(clock.get_fps())
-        fps_text = self.font.render(f"FPS: {fps}", True, BLACK)
-        fps_rect = fps_text.get_rect(topright=(SCREEN_WIDTH - 10, 40))
+        fps_text = self.font.render(f"FPS: {fps}", True, Settings.Colors.BLACK)
+        fps_rect = fps_text.get_rect(topright=(Settings.Screen.WIDTH - 10, 40))
         screen.blit(fps_text, fps_rect)
         
         # Health Bar
-        fill = (player.health / PLAYER_MAX_HEALTH) * HEALTH_BAR_W
+        fill = (player.health / Settings.Player.MAX_HEALTH) * Settings.HUD.HEALTH_BAR_W
         
-        outline_rect = pygame.Rect(10, 40, HEALTH_BAR_W, HEALTH_BAR_H)
-        fill_rect = pygame.Rect(10, 40, fill, HEALTH_BAR_H)
+        outline_rect = pygame.Rect(10, 40, Settings.HUD.HEALTH_BAR_W, Settings.HUD.HEALTH_BAR_H)
+        fill_rect = pygame.Rect(10, 40, fill, Settings.HUD.HEALTH_BAR_H)
 
-        pygame.draw.rect(screen, RED, fill_rect)
-        pygame.draw.rect(screen, WHITE, outline_rect, 2)
+        pygame.draw.rect(screen, Settings.Colors.RED, fill_rect)
+        pygame.draw.rect(screen, Settings.Colors.WHITE, outline_rect, 2)
 
 
 class Game:
     def __init__(self):
         pygame.init()
         pygame.display.set_caption("Planes")
-        self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+        self.screen = pygame.display.set_mode((Settings.Screen.WIDTH, Settings.Screen.HEIGHT))
         self.clock = pygame.time.Clock()
         self.font = pygame.font.Font(None, 36)
         self.big_font = pygame.font.Font(None, 72)
@@ -72,9 +72,9 @@ class Game:
         self.keys = pygame.key.get_pressed() # keys here for state access
         # Assets
         self.asset_manager = AssetManager()
-        self.asset_manager.load_and_scale_image("player", PLAYER_IMAGE_PATH, SCALE_FACTOR)
-        self.asset_manager.load_and_scale_image("bullet", BULLET_IMAGE_PATH, SCALE_FACTOR)
-        self.asset_manager.load_and_scale_image("enemy", ENEMY_IMAGE_PATH, SCALE_FACTOR)
+        self.asset_manager.load_and_scale_image("player", Settings.Paths.PLAYER_IMAGE, Settings.SCALE_FACTOR)
+        self.asset_manager.load_and_scale_image("bullet", Settings.Paths.BULLET_IMAGE, Settings.SCALE_FACTOR)
+        self.asset_manager.load_and_scale_image("enemy", Settings.Paths.ENEMY_IMAGE, Settings.SCALE_FACTOR)
 
         # Game systems
         self.hud = HUD(self.font)
@@ -100,7 +100,7 @@ class Game:
 
     def spawn_enemy(self):
         current_time = pygame.time.get_ticks()
-        if current_time - self.last_enemy_spawn_time > ENEMY_SPAWN_DELAY:
+        if current_time - self.last_enemy_spawn_time > Settings.Timers.ENEMY_SPAWN_DELAY:
             enemy = Enemy(self.asset_manager)
             self.enemies.add(enemy)
             self.all_sprites.add(enemy)
@@ -114,12 +114,12 @@ class Game:
 
         player_hit = pygame.sprite.spritecollide(self.player, self.enemies, True) 
         if player_hit:
-            damage = len(player_hit) * PLAYER_COLLISION_DAMAGE
+            damage = len(player_hit) * Settings.Player.COLLISION_DAMAGE
             self.player.take_damage(damage)
     
     def handle_shooting(self):
         current_time = pygame.time.get_ticks()
-        if current_time - self.last_shot_time > SHOOT_DELAY:
+        if current_time - self.last_shot_time > Settings.Timers.SHOOT_DELAY:
             bullet = Bullet(self.player.rect.centerx, self.player.rect.top, self.asset_manager)
             self.bullets.add(bullet)
             self.all_sprites.add(bullet)
@@ -137,14 +137,18 @@ class Game:
             # State transition logic
             if next_state_key_from_events == "QUIT":
                 self.running = False
-            elif next_state_key_from_events != "SELF":
+            
+            elif next_state_key_from_events != "SELF" and next_state_key_from_events is not None:
                 self.current_state_key = next_state_key_from_events
                 self.current_state = self.states[self.current_state_key]
-            
-            elif next_state_key_from_update != "SELF":
+                
+            elif next_state_key_from_update != "SELF" and next_state_key_from_update is not None:
                  self.current_state_key = next_state_key_from_update
+                 
                  if self.current_state_key == "GAME_OVER":
-                     self.states["GAME_OVER"] = GameOverState(self) # re-instantiate GAME_OVER state to reset it
+                     # Re-instantiate GAME_OVER state to reset its score text
+                     self.states["GAME_OVER"] = GameOverState(self) 
+                     
                  self.current_state = self.states[self.current_state_key]
 
         pygame.quit()

@@ -1,6 +1,6 @@
 import pygame
 import random
-from settings import *
+from settings import Settings
 
 
 # -------------------
@@ -11,17 +11,17 @@ class Player(pygame.sprite.Sprite):
         super().__init__()
         self.original_image = asset_manager.get_image("player")
         self.image = self.original_image.copy()
-        self.pos = pygame.math.Vector2(SCREEN_WIDTH // 2, SCREEN_HEIGHT - 50)
+        self.pos = pygame.math.Vector2(Settings.Screen.WIDTH // 2, Settings.Screen.HEIGHT - 50)
         self.rect = self.image.get_rect(center=self.pos)
         self.mask = pygame.mask.from_surface(self.image)
-        self.health = PLAYER_MAX_HEALTH
+        self.health = Settings.Player.MAX_HEALTH
         self.score = 0
         self.current_velocity = pygame.math.Vector2(0, 0)
         self.current_rotation = 0.0
 
     @staticmethod
     def lerp(a, b, t):
-        """Linearly interpolate from a to b by t."""
+        """gimme those smooth transitions"""
         return a + (b - a) * t
 
     def update(self, keys, delta_time):
@@ -39,15 +39,15 @@ class Player(pygame.sprite.Sprite):
         # independent axis control is desired.
 
         target_velocity = pygame.math.Vector2(0, 0)
-        target_velocity.x = input_direction.x * MAX_STRAFE_SPEED
+        target_velocity.x = input_direction.x * Settings.Player.MAX_STRAFE_SPEED
         
         if input_direction.y < 0: # Moving "forward" (up)
-            target_velocity.y = input_direction.y * MAX_FORWARD_SPEED
+            target_velocity.y = input_direction.y * Settings.Player.MAX_FORWARD_SPEED
         else: # Moving "backward" (down) or neutral
-            target_velocity.y = input_direction.y * MAX_BACKWARD_SPEED
+            target_velocity.y = input_direction.y * Settings.Player.MAX_BACKWARD_SPEED
 
-        accel_rate_x = STRAFE_ACCELERATION if input_direction.x != 0 else FRICTION
-        accel_rate_y = FORWARD_ACCELERATION if input_direction.y != 0 else FRICTION
+        accel_rate_x = Settings.Player.STRAFE_ACCELERATION if input_direction.x != 0 else Settings.Player.FRICTION
+        accel_rate_y = Settings.Player.FORWARD_ACCELERATION if input_direction.y != 0 else Settings.Player.FRICTION
 
         # LERP the current velocity toward the target velocity
         self.current_velocity.x = self.lerp(
@@ -63,12 +63,12 @@ class Player(pygame.sprite.Sprite):
 
         # Target rotation is based *only* on horizontal input
         # (input_direction.x is -1, 0, or 1)
-        target_rotation = -input_direction.x * MAX_BANK_ANGLE
+        target_rotation = -input_direction.x * Settings.Player.MAX_BANK_ANGLE
         # LERP the current rotation toward the target
         self.current_rotation = self.lerp(
             self.current_rotation, 
             target_rotation, 
-            BANK_SPEED * delta_time
+            Settings.Player.BANK_SPEED * delta_time
         )
     
         self.image = pygame.transform.rotate(self.original_image, self.current_rotation)
@@ -77,7 +77,7 @@ class Player(pygame.sprite.Sprite):
 
         self.pos += self.current_velocity * delta_time
         self.rect.center = self.pos 
-        self.rect.clamp_ip(pygame.Rect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT))
+        self.rect.clamp_ip(pygame.Rect(0, 0, Settings.Screen.WIDTH, Settings.Screen.HEIGHT))
 
         self.pos.x, self.pos.y = self.rect.centerx, self.rect.centery
 
@@ -107,17 +107,17 @@ class Enemy(pygame.sprite.Sprite):
     def __init__(self, asset_manager):
         super().__init__()
         self.image = asset_manager.get_image("enemy")
-        self.rect = self.image.get_rect(center=(random.randint(50, SCREEN_WIDTH - 50), -50))
+        self.rect = self.image.get_rect(center=(random.randint(50, Settings.Screen.WIDTH - 50), -50))
         self.mask = pygame.mask.from_surface(self.image)
-        self.speed = ENEMY_SPEED
+        self.speed = Settings.Enemy.SPEED
 
     def update(self):
         self.rect.y += self.speed
-        if self.rect.top > SCREEN_HEIGHT:
+        if self.rect.top > Settings.Screen.HEIGHT:
             self.kill()
 
     def draw_debug(self, screen):
-        DEBUG_COLOR = (255, 0, 0) # RED
+        DEBUG_COLOR = Settings.Colors.RED
         points = self.mask.outline()
         offset_points = []
         for point in points:
@@ -136,7 +136,7 @@ class Bullet(pygame.sprite.Sprite):
         super().__init__()
         self.image = asset_manager.get_image("bullet")
         self.rect = self.image.get_rect(center=(x, y))
-        self.speed = BULLET_SPEED
+        self.speed = Settings.Bullet.SPEED
 
     def update(self):
         self.rect.y -= self.speed
