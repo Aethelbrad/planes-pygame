@@ -28,7 +28,7 @@ class Settings:
 
     class Colors:
         """Standard color definitions."""
-        BG = (12, 12, 20)
+        BG = (255, 255, 255)
         WHITE = (255, 255, 255)
         BLACK = (0, 0, 0)
         RED = (255, 0, 0)
