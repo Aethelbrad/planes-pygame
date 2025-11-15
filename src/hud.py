@@ -1,4 +1,4 @@
-from settings import Settings
+from src.settings import Settings
 
 class HUD:
     def __init__(self, font):

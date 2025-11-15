@@ -1,10 +1,10 @@
 import pygame
 import sys
-from settings import Settings
-from asset_manager import AssetManager
-from entities import Player, Bullet, Enemy
-from states import PlayingState, PausedState, GameOverState
-from hud import HUD
+from src.settings import Settings
+from src.asset_manager import AssetManager
+from src.entities.entities import Player, Bullet, Enemy
+from src.states.states import PlayingState, PausedState, GameOverState
+from src.hud import HUD
 
 
 class Game:

@@ -1,9 +1,8 @@
 import os
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ASSETS_DIR = os.path.join(BASE_DIR, "assets")
 SPRITES_DIR = os.path.join(ASSETS_DIR, "sprites")
-BACKGROUNDS_DIR = os.path.join(ASSETS_DIR, "backgrounds")
 
 class Settings:
     IS_DEBUG_MODE = False
@@ -31,7 +30,6 @@ class Settings:
         PLAYER_IMAGE = os.path.join(SPRITES_DIR, "player.png")
         BULLET_IMAGE = os.path.join(SPRITES_DIR, "tile_0001.png")
         ENEMY_IMAGE = os.path.join(SPRITES_DIR, "ship_0022.png")
-        TILESHEET = os.path.join(BACKGROUNDS_DIR, "tiles.png")
 
     # ----------------------------------------------------
 

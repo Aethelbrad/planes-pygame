@@ -1,6 +1,6 @@
 import pygame
 import random
-from settings import Settings
+from src.settings import Settings
 
 
 # -------------------

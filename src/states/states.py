@@ -1,6 +1,5 @@
 import pygame
-import sys
-from settings import Settings
+from ..settings import Settings
 
 
 class BaseState:
