@@ -2,7 +2,7 @@
 
 ![Game Screenshot](screenshot.png)
 
-A simple, physics-based vertical shoot 'em up built with Pygame-CE and featuring a clean, scalable game architecture.
+A simple space invaders clone built with Pygame-CE and featuring a clean, scalable game architecture.
 
 ## Features
 
